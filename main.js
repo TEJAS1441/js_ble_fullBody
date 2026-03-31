@@ -888,9 +888,21 @@ function initApp() {
             if (typeof event.data === 'string') {
                 try {
                     const msg = JSON.parse(event.data);
+
+                    // 1. Handle backend-detected intents (TOTAL BYPASS of LLM)
+                    if (msg.type === 'intent') {
+                        console.log('[S2S] Backend matched intent:', msg.intent);
+                        if (window.triggerIntent) {
+                            window.triggerIntent(msg.intent);
+                        }
+                        return;
+                    }
+
+                    // 2. Handle standard transcriptions
                     if (msg.type === 'transcription') {
                         console.log(`[S2S] Received Transcription: "${msg.text}"`);
-                        // Forward to intent detector
+
+                        // Forward to local intent detector (backup/hybrid)
                         if (window.handleVoiceIntent) {
                             window.handleVoiceIntent(msg.text);
                         }

@@ -107,7 +107,43 @@ export function setS2SSuppression(val) {
 /**
  * Hook for main.js to handle intents from the S2S stream
  */
+export function triggerIntent(intent) {
+    if (!intent) return;
+    console.log(`[STT] Manually triggering intent: ${intent}`);
+
+    // Suppress AI response since we are taking a local action
+    if (window.suppressAIVoice) {
+        window.suppressAIVoice(3000);
+    }
+
+    // Execute actions
+    if (intent === 'reset_pose') {
+        _updatePanel('status', '✅ Resetting pose...');
+        document.getElementById('btn-calibrate')?.click();
+        _poseResetDone = true;
+        _synthesizeAndPlay(RESPONSES.reset_pose);
+        setTimeout(() => _updatePanel('status', '🎤 Listening for commands...'), 2000);
+    } else if (intent === 'end_session') {
+        _updatePanel('status', '👋 Ending session...');
+        _synthesizeAndPlay(RESPONSES.end_session, () => {
+            document.getElementById('btn-exit-session')?.click();
+        });
+    } else if (intent === 'start_session') {
+        _updatePanel('status', '🚀 Starting session!');
+        document.getElementById('btn-calibrate-new')?.click();
+        _synthesizeAndPlay(RESPONSES.start_session_ok);
+        setTimeout(() => _updatePanel('status', '🎤 Listening for commands...'), 2000);
+    } else if (intent === 'mute_mic') {
+        _updatePanel('status', '🔇 Toggling mic...');
+        if (window.toggleMic) window.toggleMic();
+        _synthesizeAndPlay(RESPONSES.mute_mic);
+        setTimeout(() => _updatePanel('status', '🎤 Listening for commands...'), 2000);
+    }
+}
+
+window.stopVoiceCommands = stopVoiceCommands;
 window.handleVoiceIntent = _handleTranscript;
+window.triggerIntent = triggerIntent;
 
 /**
  * Call this when the session screen opens.
