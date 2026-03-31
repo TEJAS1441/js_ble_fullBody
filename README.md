@@ -76,9 +76,31 @@ If you need more control, you can run components separately:
 - `style.css`: Modern, premium UI styling.
 
 ## 🧪 AI & Voice Features
-The project includes integration for:
-- **Speech-to-Speech (S2S):** Real-time audio streaming via WebRTC/WebSockets.
-- **Pose Comparison:** High-accuracy bone-to-bone comparison between User and Trainer avatars.
+
+The project includes advanced AI integration for a seamless yoga experience:
+
+### 🎙️ Unified Voice Intents
+Control your session hands-free using natural language. Recognition matches are fuzzy, so variations of these phrases will work:
+- **"End Session"**: Saves your progress and returns to the dashboard.
+- **"Reset Pose" / "Calibrate"**: Resets your 3D avatar posture (T-Pose).
+- **"Calibrate and Start Session"**: Performs a quick calibration and immediately begins the AI session.
+- **"Mute/Unmute Mic"**: Toggles your voice stream during an active session.
+
+### 🔊 Speech-to-Speech (S2S) Pipeline
+- **Real-time Pipeline**: Audio is streamed via WebSockets to a dedicated Python backend for STT -> LLM -> TTS.
+- **High Accuracy**: Input audio is boosted by 2.0x for superior transcription in noisy environments.
+- **Smart Interruption**: Local voice commands automatically suppress AI chatter for immediate feedback.
+
+### 🧍 Pose Comparison
+- Real-time **bone-to-bone comparison** between the User and Trainer avatars to guide your practice.
+
+---
+
+## 📦 Repository & Assets
+To keep the code lightweight and faster to clone, large 3D assets (`.glb` files) are excluded from the Git repository.
+
+- **Infrastructure**: All project logic, shaders, and UI are in the repo.
+- **Large Assets**: `.glb` and `.bin` models must be provided/managed locally in the `public/avatar/` directory.
 
 ---
 © 2026 Nu7 Studio. All rights reserved.
