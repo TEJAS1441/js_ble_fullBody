@@ -1,113 +1,84 @@
-This project is a browser-based 3D avatar viewer that animates a yoga avatar in real time using BLE IMU sensors. It consists of:
+# Nu7 Avatar BLE & Studio
 
-- A Vite + Three.js frontend that loads a GLB avatar and applies bone rotations from incoming sensor quaternions.
-- A Python WebSocket relay server that broadcasts BLE data to browser clients.
-- A Python BLE client that connects to two IMU hubs (lower/upper body), parses quaternion packets, and streams them to the relay.
+Nu7 Avatar BLE & Studio is a comprehensive platform for AI-integrated yoga sessions, featuring interactive 3D avatars controlled via BLE (Bluetooth Low Energy) and real-time posture analysis.
 
-**Quick Start**
-1. Install frontend deps:
-   - `npm install`
-2. Start the WebSocket relay:
-   - `python public/python/app.py`
-3. Start the BLE client (in a second terminal):
-   - `python public/python/ble_client.py`
-4. Start the frontend dev server (in a third terminal):
-   - `npx vite`
-5. Open the Vite URL in your browser and click `CALIBRATE` once you are standing straight.
+## 🚀 Getting Started
 
-If you want a global `vite` command, add a script to `package.json` or run `npx vite` as shown above.
+Follow these steps to set up and run the project on your local machine.
 
----
+### Prerequisites
 
-**System Overview**
+Ensure you have the following installed:
+- [Node.js](https://nodejs.org/) (v18 or higher recommended)
+- [NPM](https://www.npmjs.com/)
+- [Docker](https://www.docker.com/) (for the PostgreSQL database)
+- [Git](https://git-scm.com/)
 
-Frontend (`index.html`, `main.js`)
-- Loads `public/avatar/custom_avatar_2.glb` via `GLTFLoader`.
-- Maps incoming sensor keys (e.g. `LOWER_IMU1`) to avatar bone names via `SENSOR_MAPPING`.
-- Applies sensor quaternions to bones with optional per-bone tweaks in `BONE_TWEAKS`.
-- Uses a WebSocket connection to `ws://localhost:8001/ws` to receive live data.
-- Smoothing is controlled by the `Smoothing` slider; higher values respond faster.
+### 🛠️ Installation
 
-Backend relay (`public/python/app.py`)
-- WebSocket server on port `8001`.
-- `/ws` is for browser clients.
-- `/ble` is for the BLE client.
-- The BLE client sends JSON as-is; the relay fan-outs to all browsers.
+1. **Clone the repository:**
+   ```bash
+   git clone <repository-url>
+   cd exp_avatar_with_studio
+   ```
 
-BLE client (`public/python/ble_client.py`)
-- Connects to two devices (lower/upper body) using the hardcoded MACs:
-  - `LOWER_BODY_MAC`
-  - `UPPER_BODY_MAC`
-- Subscribes to characteristic `QUAT_CHAR_UUID`.
-- Parses packets into quaternions and emits JSON to the relay at ~33 Hz.
-- Prints a simple terminal UI showing raw quaternion values and connection status.
+2. **Install dependencies:**
+   ```bash
+   npm install
+   ```
+
+3. **Configure Environment Variables:**
+   Create a `.env` file in the root directory and add the following:
+   ```env
+   DATABASE_URL="postgresql://postgres:password@localhost:5432/nu7_avatar_db?schema=public"
+   JWT_SECRET="your_secure_jwt_secret"
+   PORT=3001
+   VITE_AI_HOST=localhost
+   VITE_AI_PORT=8000
+   ```
 
 ---
 
-**Expected Terminal Output**
+## 🏃 Running the Program
 
-`public/python/app.py`
-- Prints: `WebSocket Server running on port 8001`
-- Prints: `Browser connected` when the frontend connects.
+The easiest way to run the entire stack (Database, Backend, and Frontend) is using the main dev script.
 
-`public/python/ble_client.py`
-- Shows a text menu:
-  - `1. Connect All Devices`
-  - `2. Start Streaming (Show Data)`
-  - `3. Exit`
-- When streaming, it clears the terminal and prints a live table of IMU quaternions.
+### 1. Run Everything (Full Stack)
+This command automatically starts the database container, applies Prisma migrations, and launches both backend and frontend servers.
+```bash
+npm run dev
+```
 
----
+### 2. Mode-Specific Execution
+You can specify a display mode for the studio using the `-o` flag:
+```bash
+npm run dev -- -o 2
+```
+*(Default mode is `1` if not specified)*
 
-**Setup Notes**
+### 3. Individual Commands
+If you need more control, you can run components separately:
 
-Python dependencies
-- The BLE client requires `bleak` and `websockets`.
-- Install them in your environment if they are missing:
-  - `python -m pip install bleak websockets`
-
-MAC addresses
-- Update `LOWER_BODY_MAC` and `UPPER_BODY_MAC` in `public/python/ble_client.py` to match your devices.
-
-Avatar bones
-- Bone names in `SENSOR_MAPPING` must match the skeleton in `public/avatar/custom_avatar_2.glb`.
-- If a bone is inverted, add a tweak in `BONE_TWEAKS` or adjust mapping.
+*   **Start Database (Docker):** `npm run db:up`
+*   **Apply DB Migrations:** `npm run db:push`
+*   **Run Backend Only:** `npm run dev:backend`
+*   **Run Frontend Only:** `npm run dev:frontend`
 
 ---
 
-**Package Versions**
+## 📂 Project Structure
 
-From `package.json`:
-- `three`: `^0.182.0`
-- `vite` (dev): `^7.3.1`
+- `server.js`: Express backend handling authentication, sessions, and AI integration.
+- `main.js`: Core frontend logic for 3D avatar rendering and BLE communication.
+- `prisma/`: Database schema and client configuration.
+- `docker-compose.yml`: PostgreSQL database configuration.
+- `dev.js`: Orchestration script for the development environment.
+- `style.css`: Modern, premium UI styling.
 
-From the local Python venv (if you use it):
-- `python`: `3.12` (venv path shows `python3.12`)
-- `bleak`: `2.1.1`
-- `websockets`: `16.0`
-
----
-
-**Common Issues**
-
-No data in the browser
-- Make sure the relay server is running and the BLE client is streaming.
-- Check that the frontend is connected to `ws://localhost:8001/ws`.
-
-Devices not connecting
-- Confirm MAC addresses and that the BLE devices are advertising.
-- On Linux, you may need permissions for Bluetooth (e.g. add your user to the `bluetooth` group).
-
-Avatar not moving
-- Click `CALIBRATE` while standing straight.
-- Verify `SENSOR_MAPPING` names match the GLB skeleton bone names.
+## 🧪 AI & Voice Features
+The project includes integration for:
+- **Speech-to-Speech (S2S):** Real-time audio streaming via WebRTC/WebSockets.
+- **Pose Comparison:** High-accuracy bone-to-bone comparison between User and Trainer avatars.
 
 ---
-
-**File Map (Key Files)**
-
-- `index.html`: UI and import maps for Three.js.
-- `main.js`: Three.js scene + avatar solver + WebSocket client.
-- `public/avatar/custom_avatar_2.glb`: 3D avatar.
-- `public/python/app.py`: WebSocket relay server.
-- `public/python/ble_client.py`: BLE client and terminal UI.
+© 2026 Nu7 Studio. All rights reserved.

@@ -1,22 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <title>Nu7 Yoga Avatar Client</title>
-    <style>
-        body { margin: 0; overflow: hidden; background-color: #f0f0f0; font-family: sans-serif; }
-        #controls {
-            position: absolute; top: 20px; left: 20px;
-            background: rgba(255, 255, 255, 0.9); padding: 20px;
-            border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        button {
-            padding: 10px 20px; font-size: 16px; cursor: pointer;
-            background: #ff6b6b; color: white; border: none; border-radius: 4px;
-        }
-        button:hover { background: #ff5252; }
-        .status { margin-top: 10px; font-size: 12px; color: #666; }
-    </style>
+    <link rel="icon" type="image/x-icon" href="/nu7_logo.ico">
+    <!-- Theme variables managed in style.css -->
+    <link rel="stylesheet" href="style.css">
     <script type="importmap">
         {
             "imports": {
@@ -26,18 +16,265 @@
         }
     </script>
 </head>
+
 <body>
 
-<div id="controls">
-    <h2>nu7 YOGA STUDIO</h2>
-    <button id="btn-calibrate">CALIBRATE (Stand Straight)</button>
-    <div class="status" id="status">Waiting for BLE data...</div>
-    <div class="status">Smoothing: <input type="range" id="smooth-slider" min="0.01" max="1" step="0.01" value="0.1"></div>
-    <div id="connection-indicator" style="display: flex; align-items: center; margin-bottom: 10px;">
-    <div id="status-dot" style="width: 15px; height: 15px; border-radius: 50%; background-color: grey; margin-right: 10px;"></div>
-    <span id="status-text">Disconnected</span>
-</div>
-</div>
-<script type="module" src="main.js"></script>
+    <div id="auth-container">
+        <div class="auth-hero"></div>
+        <div class="auth-form-wrapper">
+            <div id="login-form-container" class="auth-box">
+                <img src="/nu7_logo.ico" alt="Nu7 Logo" class="logo">
+                <h2>Welcome Back</h2>
+                <p class="subtitle">Continue your yoga journey</p>
+                <form id="login-form">
+                    <div class="form-group">
+                        <label for="login-email">Email Address</label>
+                        <input type="email" id="login-email" placeholder="name@example.com" required
+                            autocomplete="email">
+                    </div>
+                    <div class="form-group">
+                        <label for="login-password">Password</label>
+                        <input type="password" id="login-password" placeholder="••••••••" required
+                            autocomplete="current-password">
+                    </div>
+                    <button type="submit" class="btn" style="width: 100%;">
+                        <span class="btn-text-one">Log In</span>
+                        <span class="btn-text-two">Log In</span>
+                    </button>
+                </form>
+                <p id="login-error" class="error-msg"></p>
+                <div class="switch-auth">
+                    <p>New to Nu7? <a href="#" id="show-signup">Join the Studio</a></p>
+                </div>
+            </div>
+
+            <div id="signup-form-container" class="auth-box" style="display: none;">
+                <img src="/nu7_logo.ico" alt="Nu7 Logo" class="logo">
+                <h2>Join the Studio</h2>
+                <p class="subtitle">Start your transformation today</p>
+                <form id="signup-form">
+                    <div class="form-group">
+                        <label for="signup-firstname">First Name</label>
+                        <input type="text" id="signup-firstname" placeholder="Yoga" required autocomplete="given-name">
+                    </div>
+                    <div class="form-group">
+                        <label for="signup-lastname">Last Name</label>
+                        <input type="text" id="signup-lastname" placeholder="Master" required
+                            autocomplete="family-name">
+                    </div>
+                    <div class="form-group">
+                        <label for="signup-dob">Date of Birth</label>
+                        <input type="date" id="signup-dob" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="signup-email">Email Address</label>
+                        <input type="email" id="signup-email" placeholder="name@example.com" required
+                            autocomplete="email">
+                    </div>
+                    <div class="form-group">
+                        <label for="signup-password">Password</label>
+                        <input type="password" id="signup-password" placeholder="••••••••" required
+                            autocomplete="new-password">
+                    </div>
+                    <button type="submit" class="btn" style="width: 100%;">
+                        <span class="btn-text-one">Create Account</span>
+                        <span class="btn-text-two">Create Account</span>
+                    </button>
+                </form>
+                <p id="signup-error" class="error-msg"></p>
+                <div class="switch-auth">
+                    <p>Already a member? <a href="#" id="show-login">Log In</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="app-container" style="display: none;">
+        <!-- TAB NAVIGATION -->
+        <nav class="app-nav">
+            <img src="/nu7_logo.ico" alt="Nu7 Logo" class="logo-small">
+            <div class="nav-links">
+                <button class="nav-btn active" data-tab="dashboard-tab">Dashboard</button>
+                <button class="nav-btn" data-tab="session-tab">Session</button>
+                <button class="nav-btn" data-tab="profile-tab">Profile</button>
+            </div>
+            <button id="btn-logout" class="btn logout-btn"
+                style="background: linear-gradient(to top, #4c0000, #a30000, #db0000);">
+                <span class="btn-text-one">Logout</span>
+                <span class="btn-text-two">Logout</span>
+            </button>
+        </nav>
+
+        <div class="tab-content">
+            <!-- DASHBOARD TAB -->
+            <section id="dashboard-tab" class="tab-pane active fade-in">
+                <h1 id="user-greeting">Good Morning, User</h1>
+                <div class="dashboard-stats">
+                    <div class="table-header-row">
+                        <h3>Recent Sessions</h3>
+                        <button id="btn-clear-history" class="btn-danger-sm">Clear History</button>
+                    </div>
+                    <div class="table-container">
+                        <table id="sessions-table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Time</th>
+                                    <th>Duration</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody id="sessions-list">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                        <p id="no-sessions-msg"
+                            style="display:none; text-align:center; padding: 20px; color: var(--apple-grey);">No
+                            previous
+                            sessions found.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SESSION TAB -->
+            <section id="session-tab" class="tab-pane fade-in">
+                <h1>Available Sessions</h1>
+                <div class="session-cards">
+                    <div class="session-card">
+                        <div class="session-card-img" style="background-image: url('/surya_namaskar.png');"></div>
+                        <div class="session-card-content">
+                            <h3>Surya Namaskar</h3>
+                            <p>Sun Salutation Flow - Improve flexibility and focus.</p>
+                            <button id="btn-start-session" class="btn" style="width: 100%">
+                                <span class="btn-text-one">Select Session</span>
+                                <span class="btn-text-two">Select Session</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- PROFILE TAB -->
+            <section id="profile-tab" class="tab-pane fade-in">
+                <h1>Your Profile</h1>
+                <div class="auth-box" style="margin: 0 auto;">
+                    <form id="profile-form">
+                        <div class="form-group">
+                            <label for="prof-firstname">First Name</label>
+                            <input type="text" id="prof-firstname" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="prof-lastname">Last Name</label>
+                            <input type="text" id="prof-lastname" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="prof-dob">Date of Birth</label>
+                            <input type="date" id="prof-dob" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Email (Non-editable)</label>
+                            <input type="email" id="prof-email" disabled style="opacity: 0.6; cursor: not-allowed;">
+                        </div>
+                        <button type="submit" class="btn" style="width: 100%;">
+                            <span class="btn-text-one">Save Changes</span>
+                            <span class="btn-text-two">Save Changes</span>
+                        </button>
+                        <p id="profile-msg" class="success-msg"
+                            style="color: #4CAF50; margin-top: 10px; display: none;">Profile updated successfully</p>
+                    </form>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <!-- 3D AVATAR SESSION CONTAINER (SPLIT SCREEN) -->
+    <div id="session-container" style="display: none;">
+        <div id="split-overlay">
+            <div class="split-label left-label">User View</div>
+            <div class="split-label right-label">Trainer View</div>
+
+            <div id="split-controls">
+                <!-- Mic Button -->
+                <button id="btn-mic" class="mic-btn" title="Turn on mic">
+                    <div class="siri-orb-container">
+                        <div class="siri-layer layer-1"></div>
+                        <div class="siri-layer layer-2"></div>
+                        <div class="siri-layer layer-3"></div>
+                    </div>
+
+                    <svg id="mic-off-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"
+                        width="22" height="22">
+                        <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z" />
+                        <path
+                            d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z" />
+                    </svg>
+
+                    <svg id="mic-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"
+                        width="22" height="22" style="display:none">
+                        <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z" />
+                        <path
+                            d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z" />
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Absolute Container for End Session button at top right -->
+            <div id="exit-container"
+                style="position: absolute; top: 40px; right: 40px; z-index: 50; pointer-events: auto;">
+                <button id="btn-exit-session" class="btn"
+                    style="background: linear-gradient(to top, #4c0000, #a30000, #db0000);">
+                    <span class="btn-text-one">End Session</span>
+                    <span class="btn-text-two">End Session</span>
+                </button>
+            </div>
+
+            <!-- Accuracy Gauge -->
+            <div id="accuracy-gauge-container">
+                <div id="session-name-text">Session &mdash; Surya Namaskar</div>
+                <div id="accuracy-label-text">Pose Accuracy</div>
+                <div id="accuracy-skill-bar">
+                    <div id="accuracy-gauge-fill">
+                        <span id="accuracy-value-text" class="accuracy-tooltip">70%</span>
+                    </div>
+                </div>
+                <div id="accuracy-status-text">Asana In Progress</div>
+            </div>
+
+            <div class="status-overlay">
+                <div id="connection-indicator" style="display: flex; align-items: center;">
+                    <div id="status-dot"
+                        style="width: 16px; height: 16px; border-radius: 50%; background-color: grey; margin-right: 12px;">
+                    </div>
+                    <span id="status-text" style="font-size: 18px; font-weight: 600;">Connecting...</span>
+                </div>
+            </div>
+
+            <!-- Absolute Container for REMAP and CALIBRATE buttons at bottom right -->
+            <div id="remap-container"
+                style="position: absolute; bottom: 40px; right: 40px; z-index: 200; pointer-events: auto; display: flex; flex-direction: column; gap: 15px;">
+                <button id="btn-calibrate" class="btn" style="width: 140px;">
+                    <span class="btn-text-one">Reset Pose</span>
+                    <span class="btn-text-two">Reset Pose</span>
+                </button>
+                <button id="btn-calibrate-new" class="btn" style="width: 240px;">
+                    <span class="btn-text-one">Calibrate and Start Session</span>
+                    <span class="btn-text-two">Calibrate and Start Session</span>
+                </button>
+            </div>
+            <!-- Voice Command Panel -->
+            <div id="voice-cmd-panel">
+                <div id="voice-cmd-indicator">
+                    <div id="voice-cmd-dot"></div>
+                </div>
+                <div id="voice-cmd-text">
+                    <div id="voice-cmd-status">Voice commands off</div>
+                    <div id="voice-cmd-transcript"></div>
+                </div>
+            </div>
+
+            <!-- Three.js Canvas injected here -->
+        </div>
+        <script type="module" src="main.js"></script>
 </body>
+
 </html>

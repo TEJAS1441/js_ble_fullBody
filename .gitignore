@@ -26,3 +26,9 @@ yarn-error.log*
 
 # Env
 .env
+
+/generated/prisma
+
+# Large Assets
+public/avatar/*.glb
+public/avatar/*.bin

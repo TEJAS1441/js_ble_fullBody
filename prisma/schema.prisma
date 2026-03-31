@@ -1,0 +1,95 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String
+  firstName    String
+  lastName     String
+  dob          DateTime
+  createdAt    DateTime @default(now())
+
+  preferences  UserPreference[]
+  interactions Interaction[]
+  comments     Comment[]
+
+  @@index([email])
+}
+
+model UserPreference {
+  id       String @id @default(uuid())
+  userId   String
+  category String
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Article {
+  id              String   @id // MIND dataset ID (e.g., N12345)
+  title           String
+  abstract        String?
+  category        String
+  subcategory     String?
+  url             String?
+  publishedAt     DateTime @default(now())
+  
+  // Engagement metrics
+  viewCount       Int      @default(0)
+  clickCount      Int      @default(0)
+  engagementScore Float    @default(0.0)
+  embedding       Float[]  // Vector embedding for content-based/hybrid retrieval
+
+  interactions Interaction[]
+  comments     Comment[]
+
+  @@index([category, publishedAt])
+  @@index([publishedAt])
+  @@index([id])
+  @@index([viewCount]) // For Trending Logic efficiency
+}
+
+enum InteractionType {
+  VIEW
+  CLICK
+  READ
+  LIKE
+  DISLIKE
+  SESSION
+}
+
+model Interaction {
+  id        String   @id @default(uuid())
+  userId    String
+  articleId String
+  kind      InteractionType // VIEW, CLICK, READ, LIKE, DISLIKE
+  duration  Int?     // Duration in seconds (for READ)
+  timestamp DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  article Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  @@index([userId, timestamp])
+  @@index([articleId, userId])
+}
+
+model Comment {
+  id        String   @id @default(uuid())
+  content   String
+  userId    String
+  articleId String
+  createdAt DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  article Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  @@index([articleId, createdAt])
+}

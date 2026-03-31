@@ -1,0 +1,14 @@
+All below changes should be verified and tested properly
+
+1. Add mic icon, when clicked on it, it should take mic input and start listening to the user. 
+2. When the mic icon is clicked and the system starts listening to the user, the icon should turn to disconnect mic option. Just like we have a chatgpt conversational AI
+3. Now, we need to compare both the avatar's poses. Both the avatars will be getting IMU quaternion data to move but the comparisons should be purely based on the avatar's pose/ bones location or 
+anyway that can compare head to head avatar. This comparison's accuracy should be fed to the accuracy bar
+
+average below values and product accuracy  
+    1. MPJRE (Mean Per Joint Rotation Error): Measured in degrees (degree).
+    2. MPJPE (Mean Per Joint Position Error): Measured in centimeters (cm).
+    3. MPJVE (Mean Per Joint Velocity Error): Measured in cm/s to evaluate motion 
+
+4. Add Clear History or delete a specific session on the dashboard section. 
+clear history button should be on top right of the table and delete session icon should be against each session. 

@@ -1,0 +1,6 @@
+[submodule "s2s /speech-to-speech"]
+	path = s2s /speech-to-speech
+	url = https://github.com/huggingface/speech-to-speech.git
+[submodule "s2s /fast-unidic"]
+	path = s2s /fast-unidic
+	url = https://huggingface.co/andito/fast-unidic
